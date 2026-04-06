@@ -73,8 +73,16 @@ export default function App() {
   // Fungsi download yang sudah diperbarui agar memaksa download langsung & mengubah nama sesuai judul
   const handleDownloadFile = async (downloadUrl: string, quality: string, type: string = 'video') => {
     if (!downloadUrl) return;
+
+    // Perbaikan URL (Kadang API pihak ketiga mengembalikan link tanpa awalan https://)
+    let finalUrl = downloadUrl;
+    if (finalUrl.startsWith('//')) {
+      finalUrl = 'https:' + finalUrl;
+    } else if (finalUrl.startsWith('/')) {
+      finalUrl = 'https://www.tikwm.com' + finalUrl;
+    }
     
-    setDownloadingUrl(downloadUrl); 
+    setDownloadingUrl(finalUrl); 
     
     const rawTitle = result.title || 'Video';
     const cleanTitle = rawTitle
@@ -87,7 +95,7 @@ export default function App() {
     const fileName = `${cleanTitle}_TikTok_${quality}.${type === 'audio' ? 'mp3' : 'mp4'}`;
 
     try {
-      const response = await fetch(downloadUrl);
+      const response = await fetch(finalUrl);
       if (!response.ok) throw new Error('CORS Terblokir');
       
       const blob = await response.blob();
@@ -104,7 +112,7 @@ export default function App() {
     } catch (err) {
       console.warn("Download langsung diblokir browser, menggunakan tab cadangan.");
       const a = document.createElement('a');
-      a.href = downloadUrl;
+      a.href = finalUrl;
       a.target = '_blank';
       a.download = fileName;
       document.body.appendChild(a);
@@ -242,6 +250,18 @@ export default function App() {
                     </button>
                   )}
 
+                  {/* Tombol SD */}
+                  {(result.sd || result.platform === 'TikTok') && (
+                    <button 
+                      onClick={() => handleDownloadFile(result.sd || result.hd, 'SD')}
+                      disabled={downloadingUrl === (result.sd || result.hd)}
+                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-slate-700 disabled:opacity-70 text-sm md:text-base"
+                    >
+                      {downloadingUrl === (result.sd || result.hd) ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Download size={16} className="md:w-[18px] md:h-[18px]" />}
+                      Unduh Standar (SD)
+                    </button>
+                  )}
+
                   {/* Tombol Audio (MP3) */}
                   {(result.audio || result.platform === 'TikTok') && (
                     <button 
@@ -270,4 +290,4 @@ export default function App() {
       </main>
     </div>
   );
-}
+}git add .
