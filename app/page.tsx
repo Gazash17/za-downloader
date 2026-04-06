@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, FormEvent, useRef } from 'react';
-import { Download, Link as LinkIcon, Video, Loader2, CheckCircle2, ShieldCheck, Zap, Terminal, RefreshCw } from 'lucide-react';
+import { Download, Link as LinkIcon, Video, Loader2, CheckCircle2, ShieldCheck, Zap, Terminal, Music, RefreshCw } from 'lucide-react';
 
 export default function App() {
   const [url, setUrl] = useState('');
@@ -71,7 +71,7 @@ export default function App() {
   };
 
   // Fungsi download yang sudah diperbarui agar memaksa download langsung & mengubah nama sesuai judul
-  const handleDownloadFile = async (downloadUrl: string, quality: string) => {
+  const handleDownloadFile = async (downloadUrl: string, quality: string, type: string = 'video') => {
     if (!downloadUrl) return;
     
     setDownloadingUrl(downloadUrl); 
@@ -83,7 +83,8 @@ export default function App() {
       .replace(/\s+/g, '_')
       .substring(0, 40); 
       
-    const fileName = `${cleanTitle}_TikTok_${quality}.mp4`;
+    // Otomatis memberi akhiran .mp3 kalau yang didownload itu audio
+    const fileName = `${cleanTitle}_TikTok_${quality}.${type === 'audio' ? 'mp3' : 'mp4'}`;
 
     try {
       const response = await fetch(downloadUrl);
@@ -138,7 +139,7 @@ export default function App() {
             Unduh TikTok <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Kualitas HD.</span>
           </h2>
           <p className="text-sm md:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Bypass & unduh video dari TikTok tanpa watermark. Tanpa iklan, aman, dan super cepat.
+            Bypass & unduh video dari TikTok tanpa watermark. Tersedia opsi Video HD dan Audio MP3. Cepat & aman.
           </p>
         </div>
 
@@ -185,15 +186,15 @@ export default function App() {
           <div className="flex flex-wrap justify-center gap-3 md:gap-6 mt-8 md:mt-10">
             <div className="flex items-center gap-1.5 md:gap-2 text-slate-400 bg-slate-900/50 px-3 md:px-4 py-1.5 md:py-2 rounded-md md:rounded-lg border border-slate-800/50">
               <CheckCircle2 className="h-3 w-3 md:h-4 md:w-4 text-cyan-400" />
-              <span className="text-xs md:text-sm font-medium">Ultra HD / SD</span>
+              <span className="text-xs md:text-sm font-medium">Ultra HD</span>
             </div>
             <div className="flex items-center gap-1.5 md:gap-2 text-slate-400 bg-slate-900/50 px-3 md:px-4 py-1.5 md:py-2 rounded-md md:rounded-lg border border-slate-800/50">
               <ShieldCheck className="h-3 w-3 md:h-4 md:w-4 text-cyan-400" />
               <span className="text-xs md:text-sm font-medium">Tanpa Watermark</span>
             </div>
             <div className="flex items-center gap-1.5 md:gap-2 text-slate-400 bg-slate-900/50 px-3 md:px-4 py-1.5 md:py-2 rounded-md md:rounded-lg border border-slate-800/50 hidden sm:flex">
-              <Terminal className="h-3 w-3 md:h-4 md:w-4 text-cyan-400" />
-              <span className="text-xs md:text-sm font-medium">Auto Clean File</span>
+              <Music className="h-3 w-3 md:h-4 md:w-4 text-cyan-400" />
+              <span className="text-xs md:text-sm font-medium">Auto Audio MP3</span>
             </div>
           </div>
         )}
@@ -241,15 +242,15 @@ export default function App() {
                     </button>
                   )}
 
-                  {/* Tombol SD */}
-                  {(result.sd || result.platform === 'TikTok') && (
+                  {/* Tombol Audio (MP3) */}
+                  {(result.audio || result.platform === 'TikTok') && (
                     <button 
-                      onClick={() => handleDownloadFile(result.sd || result.hd, 'SD')}
-                      disabled={downloadingUrl === (result.sd || result.hd)}
-                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-slate-700 disabled:opacity-70 text-sm md:text-base"
+                      onClick={() => handleDownloadFile(result.audio, 'Audio', 'audio')}
+                      disabled={!result.audio || downloadingUrl === result.audio}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-emerald-400 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-emerald-900/50 disabled:opacity-70 text-sm md:text-base"
                     >
-                      {downloadingUrl === (result.sd || result.hd) ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Download size={16} className="md:w-[18px] md:h-[18px]" />}
-                      Unduh Standar (SD)
+                      {downloadingUrl === result.audio ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Music size={16} className="md:w-[18px] md:h-[18px]" />}
+                      Unduh Audio (MP3)
                     </button>
                   )}
                   
