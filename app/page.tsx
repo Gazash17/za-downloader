@@ -72,7 +72,10 @@ export default function App() {
 
   // Fungsi download yang sudah diperbarui agar memaksa download langsung & mengubah nama sesuai judul
   const handleDownloadFile = async (downloadUrl: string, quality: string, type: string = 'video') => {
-    if (!downloadUrl) return;
+    if (!downloadUrl) {
+       setError(`Error: Format ${quality} tidak tersedia untuk video ini.`);
+       return;
+    }
 
     // Perbaikan URL (Kadang API pihak ketiga mengembalikan link tanpa awalan https://)
     let finalUrl = downloadUrl;
@@ -113,7 +116,7 @@ export default function App() {
       console.warn("Download langsung diblokir browser, menggunakan tab cadangan.");
       const a = document.createElement('a');
       a.href = finalUrl;
-      a.target = '_blank';
+      a.target = '_blank'; // Buka di tab baru jika diblokir
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
@@ -238,43 +241,38 @@ export default function App() {
                 </div>
                 
                 <div className="flex flex-col gap-2.5 md:gap-3">
-                  {/* Tombol HD */}
-                  {(result.hd || result.platform === 'TikTok') && (
-                    <button 
-                      onClick={() => handleDownloadFile(result.hd || result.sd, 'HD')}
-                      disabled={downloadingUrl === (result.hd || result.sd)}
-                      className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(8,145,178,0.3)] border border-cyan-500/50 disabled:opacity-70 text-sm md:text-base"
-                    >
-                      {downloadingUrl === (result.hd || result.sd) ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Download size={16} className="md:w-[18px] md:h-[18px]" />}
-                      Unduh HD
-                    </button>
-                  )}
-
-                  {/* Tombol SD */}
-                  {(result.sd || result.platform === 'TikTok') && (
-                    <button 
-                      onClick={() => handleDownloadFile(result.sd || result.hd, 'SD')}
-                      disabled={downloadingUrl === (result.sd || result.hd)}
-                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-slate-700 disabled:opacity-70 text-sm md:text-base"
-                    >
-                      {downloadingUrl === (result.sd || result.hd) ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Download size={16} className="md:w-[18px] md:h-[18px]" />}
-                      Unduh Standar (SD)
-                    </button>
-                  )}
-
-                  {/* Tombol Audio (MP3) */}
-                  {(result.audio || result.platform === 'TikTok') && (
-                    <button 
-                      onClick={() => handleDownloadFile(result.audio, 'Audio', 'audio')}
-                      disabled={!result.audio || downloadingUrl === result.audio}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-emerald-400 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-emerald-900/50 disabled:opacity-70 text-sm md:text-base"
-                    >
-                      {downloadingUrl === result.audio ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Music size={16} className="md:w-[18px] md:h-[18px]" />}
-                      Unduh Audio (MP3)
-                    </button>
-                  )}
                   
-                  {/* Tombol Unduh URL Lainnya (Solid Button) */}
+                  {/* 1. Tombol HD */}
+                  <button 
+                    onClick={() => handleDownloadFile(result.hd, 'HD')}
+                    disabled={downloadingUrl === result.hd}
+                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(8,145,178,0.3)] border border-cyan-500/50 disabled:opacity-70 text-sm md:text-base"
+                  >
+                    {downloadingUrl === result.hd ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Download size={16} className="md:w-[18px] md:h-[18px]" />}
+                    Unduh HD
+                  </button>
+
+                  {/* 2. Tombol SD */}
+                  <button 
+                    onClick={() => handleDownloadFile(result.sd, 'SD')}
+                    disabled={downloadingUrl === result.sd}
+                    className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-slate-700 disabled:opacity-70 text-sm md:text-base"
+                  >
+                    {downloadingUrl === result.sd ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Download size={16} className="md:w-[18px] md:h-[18px]" />}
+                    Unduh Standar (SD)
+                  </button>
+
+                  {/* 3. Tombol Audio (MP3) */}
+                  <button 
+                    onClick={() => handleDownloadFile(result.audio, 'MP3', 'audio')}
+                    disabled={downloadingUrl === result.audio}
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-emerald-400 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-emerald-900/50 disabled:opacity-70 text-sm md:text-base"
+                  >
+                    {downloadingUrl === result.audio ? <Loader2 size={16} className="animate-spin md:w-[18px] md:h-[18px]" /> : <Music size={16} className="md:w-[18px] md:h-[18px]" />}
+                    Unduh Audio (MP3)
+                  </button>
+                  
+                  {/* 4. Tombol Unduh URL Lainnya */}
                   <button 
                     onClick={handleClear}
                     className="w-full bg-slate-900/80 hover:bg-slate-800 text-cyan-400 font-medium py-2 md:py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 border border-cyan-900/50 hover:border-cyan-500/50 text-sm md:text-base mt-1 md:mt-2"
@@ -282,6 +280,7 @@ export default function App() {
                     <RefreshCw size={14} className="md:w-[16px] md:h-[16px]" /> 
                     Unduh URL Lainnya
                   </button>
+
                 </div>
               </div>
             </div>
@@ -290,4 +289,4 @@ export default function App() {
       </main>
     </div>
   );
-}git add .
+}

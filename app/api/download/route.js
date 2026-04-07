@@ -5,39 +5,35 @@ export async function POST(request) {
     const body = await request.json();
     const { url } = body;
 
-    if (!url) {
-      return NextResponse.json({ success: false, error: 'URL tidak boleh kosong' }, { status: 400 });
+    if (!url || !url.includes('tiktok.com')) {
+      return NextResponse.json({ success: false, error: 'Masukkan URL video TikTok yang valid.' }, { status: 400 });
     }
 
     console.log("Memproses URL TikTok:", url);
 
-    // Filter: Tolak otomatis kalau bukan link TikTok
-    if (!url.includes('tiktok.com')) {
-       return NextResponse.json({ success: false, error: 'Aplikasi ini khusus untuk link TikTok!' }, { status: 400 });
-    }
-
-    // ==========================================
-    // MESIN TIKTOK KHUSUS (Sudah diperbaiki &hd=1 nya)
-    // ==========================================
+    // Memanggil API TikWM
     const res = await fetch(`https://www.tikwm.com/api/?url=${url}&hd=1`);
     const data = await res.json();
     
     if (data.code === 0) {
+      // Memastikan semua link terambil, termasuk link rahasia MP3 (music_info)
+      const hdUrl = data.data.hdplay || data.data.play;
+      const sdUrl = data.data.play || data.data.wmplay || hdUrl;
+      const audioUrl = data.data.music || (data.data.music_info ? data.data.music_info.play : null);
+
       return NextResponse.json({
         success: true,
         data: {
           platform: "TikTok",
           title: data.data.title || "Video TikTok",
           thumbnail: data.data.cover,
-          // Mengambil ukuran paling besar (HD) jika tersedia
-          hd: data.data.hdplay || data.data.play, 
-          // Mengambil ukuran standar
-          sd: data.data.play,
-          audio: data.data.music
+          hd: hdUrl,
+          sd: sdUrl,
+          audio: audioUrl
         }
       });
     } else {
-      return NextResponse.json({ success: false, error: 'Gagal mengekstrak! Pastikan link benar dan akun tidak di-private.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Gagal ekstrak! Pastikan link video bukan private.' }, { status: 400 });
     }
 
   } catch (error) {
